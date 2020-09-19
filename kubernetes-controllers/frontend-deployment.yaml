@@ -22,7 +22,7 @@ spec:
             memory: "128Mi"
             cpu: "300m"
         readinessProbe:
-          initialDelaySeconds: 10
+          initialDelaySeconds: 5
           httpGet:
             path: "/_healthz"
             port: 8080
