@@ -3,6 +3,18 @@ brdm88 Platform repository
 
 
 
+Kubernetes-Security
+======================
+
+##### Базовая часть
+
+В рамках данного задания реализованы манифесты для создания аккаунтов (сущность ServiceAccount) и предоставления им определенных прав в кластере (сущности ClusterRole, ClusterRoleBinding, Role, RoleBinding).
+
+
+
+----
+----
+
 Kubernetes-Controllers
 ======================
 
