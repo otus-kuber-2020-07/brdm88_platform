@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymentservice
+  labels:
+    app: paymentservice
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: paymentservice
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: paymentservice
+    spec:
+      containers:
+      - name: server
+        image: brdm88/hipshop-paymentservice:v0.0.2
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"

@@ -6,9 +6,12 @@ metadata:
   name: frontend
 spec:
   containers:
-  - image: brdm88/hipshop-frontend:1.0
+  - image: brdm88/hipshop-frontend:0.0.1
     name: frontend
-    resources: {}
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
   dnsPolicy: ClusterFirst
   restartPolicy: Never
 status: {}
