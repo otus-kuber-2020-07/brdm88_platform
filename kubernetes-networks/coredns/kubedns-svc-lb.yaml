@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns-tcp-lb
+  namespace: kube-system
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "CoreDNS"
+spec:
+  selector:
+    k8s-app: kube-dns
+  type: LoadBalancer
+  loadBalancerIP: "172.17.255.100"
+  ports:
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: 53
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns-udp-lb
+  namespace: kube-system
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "CoreDNS"
+spec:
+  selector:
+    k8s-app: kube-dns
+  type: LoadBalancer
+  loadBalancerIP: "172.17.255.100"
+  ports:
+  - name: dns-udp
+    port: 53
+    protocol: UDP
+    targetPort: 53
