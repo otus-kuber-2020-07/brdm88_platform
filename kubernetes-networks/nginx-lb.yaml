@@ -11,11 +11,9 @@ spec:
   type: LoadBalancer
   selector:
     app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
   ports:
-    - name: http
-      port: 80
-      targetPort: http
-    - name: https
-      port: 443
-      targetPort: https
+    - { name: http, port: 80, targetPort: http }
+    - { name: https, port: 443, targetPort: https }
+    
