@@ -20,10 +20,6 @@ spec:
       containers:
       - name: web
         image: brdm88/web:0.2
-        resources:
-          limits:
-            memory: "512Mi"
-            cpu: "700m"
         livenessProbe:
           tcpSocket:
             port: 8000
