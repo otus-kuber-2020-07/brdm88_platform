@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # Additional config for Nginx to get access via "/dashboard" (without trailing slash)
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite "^(/dashboard)$" $1/ permanent;
+      rewrite "(?i)/dashboard(/|$)(.*)" /$2 break;
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /dashboard(/|$)(.*)
+        backend:
+          serviceName: kubernetes-dashboard
+          servicePort: 443

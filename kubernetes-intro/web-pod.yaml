@@ -12,6 +12,13 @@ spec:
       limits:
         memory: "256Mi"
         cpu: "500m"
+    readinessProbe:
+      httpGet:
+        path: /index.html
+        port: 8000
+    livenessProbe:
+      tcpSocket:
+        port: 8000
     ports:
       - containerPort: 8000
     volumeMounts:
