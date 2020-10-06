@@ -2,6 +2,21 @@
 brdm88 Platform repository
 
 
+
+Kubernetes-Volumes
+===================
+
+##### Базовая часть
+
+В рамках данного задания развернут локальный кластер Kind, в котором запущен MinIO (StatefulSet и Headless Service). Изучена работа MinIO. Для возможности доступа к MinIO Browser из-за пределов кластера дополнительно создается Ingress.
+
+
+##### Дополнительные задания
+
+Манифест MinIO StatefulSet доработан для передачи значений переменных окружения через секрет Kubernetes. Объект *Secret* создается с помощью команды `kubectl create secret generic minio-secret --from-literal=MINIO_ACCESS_KEY=minio --from-literal=MINIO_SECRET_KEY=minio123 -o yaml > minio-secret.yaml`.
+
+
+
 ----
 ----
 
@@ -15,6 +30,7 @@ Kubernetes-Networks
 2) В локальном кластере развернут MetalLB. Развернут Service типа LoadBalancer.
 
 3) В локальном кластере развернут Ingress-контроллер на базе Nginx. Запущен headless service для макетного веб-сервиса и правило Ingress для доступа к нему.
+
 
 ##### Дополнительные задания
 
