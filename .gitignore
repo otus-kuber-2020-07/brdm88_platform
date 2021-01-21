@@ -5,6 +5,7 @@
 
 ## Python specific
 *.pyc
+__pycache__/
 
 ## Terraform
 *.tfstate
