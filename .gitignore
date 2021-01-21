@@ -1,0 +1,25 @@
+## Prometheus
+
+## MongoDB exporter binary
+#monitoring/mongodb_exporter/mongodb_exporter
+
+## Python specific
+*.pyc
+
+## Terraform
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+*.tfvars
+.terraform/
+
+## TLS
+*.crt
+*.key
+
+## Charts .gz archives
+#kubernetes/Charts/reddit/charts/*
+#kubernetes/Charts/efk/efk-stack/charts/*
+
+## GitLab CI Work dir
+#kubernetes/Gitlab_ci/*
