@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-mon-svc
+  labels:
+    app: nginx-mon
+    prometheus: default
+spec:
+  #type: NodePort
+  type: LoadBalancer
+  selector:
+    app: nginx-mon
+  ports:
+  - name: web
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+    #nodePort: 30080
+  - name: metrics
+    protocol: TCP
+    port: 9113
+    targetPort: 9113
+    #nodePort: 30113
