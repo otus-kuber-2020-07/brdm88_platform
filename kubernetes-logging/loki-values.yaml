@@ -1,0 +1,15 @@
+
+nodeSelector:
+  cloud.google.com/gke-nodepool: infra-pool
+
+
+loki:
+  enabled: true
+
+promtail:
+  enabled: true
+  tolerations:
+    - key: node-role
+      operator: Equal
+      value: infra
+      effect: NoSchedule

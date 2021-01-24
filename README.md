@@ -2,6 +2,43 @@
 brdm88 Platform repository
 
 
+Kubernetes-Logging
+==================
+
+##### Базовая часть
+
+В рамках данного задания выполнено следующее:
+ - В GKE развернут кластер 4-мя нодами в 2-х пулах. Развернуто приложение *Hipster Shop*.
+
+ - В кластере, на нодах из пула infra-pool, развернут EFK-стек посредством Helm. 
+
+ - Развернут *nginx-ingress* (3 реплики на нодах infra-pool) для возможности доступа к Kibana.
+
+ - Развернут *Elasticsearch Exporter* для мониторинга ES (предварительно развернут *Prometheus Operator* из чарта).
+
+ - Проведен эксперимент с выводом из работы нод Elasticsearch. Добавлен dashboard для Elasticsearch (#4358) в Grafana.
+
+ - Для *nginx-ingress* активирован экспорт метрик через соответствующее определение в values.yaml. Добавлен фильтр для преобразования формата логов Nginx в JSON. Добавлен dashboard для nginx-ingress (#9614) в Grafana.
+
+ - В Kibana cоздан Dashboard для визуализации следующих метрик nginx-ingress: общее количество запросов к nginx-ingress, кол-во запросов с различными статусами. Конфигурация выгружена в файл export.ndjson.
+
+ - В кластере развернуты Loki и Promtail, используя Helm. Datasource Loki добавлен в values.yaml для Prometheus Operator.
+ 
+ - Создан dashboard в Grafana, агрегирующий метрики nginx-ingress, а также его логи.
+
+Ниже приложены скриншоты dashboard-ов в *Grafana* и *Kibana*, отражающих некоторые метрики и логи *Nginx-Ingress*.
+
+###### Kibana Dashboard
+![Prometheus](kubernetes-logging/screenshots/kibana-dashboard.png)
+
+###### Grafana Dashboard
+![Grafana](kubernetes-logging/screenshots/grafana-nginx.png)
+
+
+----
+----
+
+
 Kubernetes-Monitoring
 =====================
 
