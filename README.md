@@ -2,6 +2,137 @@
 brdm88 Platform repository
 
 
+
+Kubernetes-Gitops
+=================
+
+
+###### Part 1 – Flux
+
+
+**Репозиторий с проектом microservices-demo**: https://gitlab.com/brdm88/microservices-demo
+
+Для репозитория настроен CI Pipeline (с ручным запуском), осуществляющий сборку Docker-образов для компонент приложения *microservices-demo*, а также их загрузку на Docker Hub. Для сервиса *cartservice* изменен базовый образ в связи с ошибками сборки (Issue: https://github.com/dotnet/dotnet-docker/issues/2548)
+
+
+В рамках данного задания выполнено следующее:
+
+ - Проект microservices-demo загружен в репозиторий, созданный на gitlab.com. 
+ - Собраны docker-образы и подготовлены helm-чарты для компонент приложения.
+ - Создан кластер в GKE из 4-х нод n1-standard-2, подключен аддон *Istio*.
+ - В кластере установлены и настроены *Flux* и *Helm operator*.
+ - Опробована работа Flux и Helm operator.
+
+ - Проверена корректность работы Flux при обновлении версий образов сервисов в Docker Registry, подтверждено автоматическое обновление тэга образа в манифесте HelmRelease в git-репозитории (на примере сервиса frontend).
+
+ - Если, например, изменить имя Deployment-а в чарте, то *Helm Operator* создаст новый Deployment с новым именем, а старый – удалит. 
+Соответствующие выдержки (момента обновления `frontend`) из лога Helm operator приведена ниже.
+
+```
+ts=2021-01-26T01:40:27.854839171Z caller=release.go:79 component=release release=frontend targetNamespace=microservices-demo resource=microservices-demo:helmrelease/frontend helmVersion=v3 info="starting sync run"
+...
+ts=2021-01-26T01:40:28.155552293Z caller=helm.go:69 component=helm version=v3 info="preparing upgrade for frontend" targetNamespace=microservices-demo release=frontend
+...
+ts=2021-01-26T01:40:28.466683189Z caller=helm.go:69 component=helm version=v3 info="Created a new Deployment called \"frontend-hipster\" in microservices-demo\n" targetNamespace=microservices-demo release=frontend
+ts=2021-01-26T01:40:28.472348089Z caller=helm.go:69 component=helm version=v3 info="Looks like there are no changes for Gateway \"frontend-gateway\"" targetNamespace=microservices-demo release=frontend
+...
+ts=2021-01-26T01:40:28.511047044Z caller=helm.go:69 component=helm version=v3 info="Deleting \"frontend\" in microservices-demo..." targetNamespace=microservices-demo release=frontend
+ts=2021-01-26T01:40:28.543269998Z caller=helm.go:69 component=helm version=v3 info="updating status for upgraded release for frontend" targetNamespace=microservices-demo release=frontend
+ts=2021-01-26T01:40:28.58663675Z caller=release.go:364 component=release release=frontend targetNamespace=microservices-demo resource=microservices-demo:helmrelease/frontend helmVersion=v3 info="upgrade succeeded" revision=9e2c4cb667f3737e138449888ffec36bba0f84af phase=upgrade
+```
+
+ - Созданы манифесты *HelmRelease* для всех компонент приложения microservices-demo. Проверена корректность развертывания соответствующих сущностей в кластере.
+
+
+
+###### Part 2 – Istio + Flagger + Canary Deployments
+
+ - В кластер установлен *Istio* с помощью istioctl (предварительно отключен плагин Istio в GKE). Затем развернут *Flagger*.
+
+ - Для NS `microservices-demo` установлен label для встраивания sidecar-контейнера с `istio-proxy` в поды.
+ - Поды приложения *microservices-demo* переразвернуты с `istio-proxy`. Доработан чарт сервиса *frontend* c добавлением манифестов для `Gateway` и `VirtualService` для обеспечения внешнего доступа к *frontend*.
+
+ - Создан и опробован манифест **Canary** для сервиса *frontend*. Достигнуто успешное обновление сервиса. Донастроен чарт сервиса *loadgenerator* для его корректной работы.
+
+Вывод команды:` kubectl -n microservices-demo get canary`
+```
+NAME       STATUS      WEIGHT   LASTTRANSITIONTIME
+frontend   Succeeded   0        2021-01-28T10:55:10Z`
+```
+
+Вывод команды: `kubectl -n microservices-demo describe canary frontend ` после успешного обновления *frontend*:
+```
+Name:         frontend
+Namespace:    microservices-demo
+Labels:       <none>
+Annotations:  helm.fluxcd.io/antecedent: microservices-demo:helmrelease/frontend
+API Version:  flagger.app/v1beta1
+Kind:         Canary
+Metadata:
+  Creation Timestamp:  2021-01-26T16:53:30Z
+  Generation:          4
+  Resource Version:    1005301
+  Self Link:           /apis/flagger.app/v1beta1/namespaces/microservices-demo/canaries/frontend
+  UID:                 08eb8a72-63e3-44da-8e95-53c376118487
+Spec:
+  Analysis:
+    Interval:    1m
+    Max Weight:  50
+    Metrics:
+      Interval:   1m
+      Name:       istio_requests_total
+      Threshold:  99
+    Step Weight:  10
+    Threshold:    1
+  Provider:       istio
+  Service:
+    Gateways:
+      frontend-gateway
+    Hosts:
+      *
+    Port:         80
+    Target Port:  8080
+    Traffic Policy:
+      Tls:
+        Mode:  DISABLE
+  Target Ref:
+    API Version:  apps/v1
+    Kind:         Deployment
+    Name:         frontend
+Status:
+  Canary Weight:  0
+  Conditions:
+    Last Transition Time:  2021-01-28T10:55:10Z
+    Last Update Time:      2021-01-28T10:55:10Z
+    Message:               Canary analysis completed successfully, promotion finished.
+    Reason:                Succeeded
+    Status:                True
+    Type:                  Promoted
+  Failed Checks:           0
+  Iterations:              0
+  Last Applied Spec:       85696bb476
+  Last Transition Time:    2021-01-28T10:55:10Z
+  Phase:                   Succeeded
+  Tracked Configs:
+Events:
+  Type    Reason  Age                From     Message
+  ----    ------  ----               ----     -------
+  Normal  Synced  12m (x4 over 37h)  flagger  New revision detected! Scaling up frontend.microservices-demo
+  Normal  Synced  11m (x4 over 37h)  flagger  Starting canary analysis for frontend.microservices-demo
+  Normal  Synced  11m (x3 over 17h)  flagger  Advance frontend.microservices-demo canary weight 10
+  Normal  Synced  10m                flagger  Advance frontend.microservices-demo canary weight 20
+  Normal  Synced  9m4s               flagger  Advance frontend.microservices-demo canary weight 30
+  Normal  Synced  8m4s               flagger  Advance frontend.microservices-demo canary weight 40
+  Normal  Synced  7m4s               flagger  Advance frontend.microservices-demo canary weight 50
+  Normal  Synced  6m4s               flagger  Copying frontend.microservices-demo template spec to frontend-primary.microservices-demo
+  Normal  Synced  5m4s               flagger  Routing all traffic to primary
+  Normal  Synced  4m4s               flagger  (combined from similar events): Promotion completed! Scaling down frontend.microservices-demo
+```
+
+----
+----
+
+
 Kubernetes-Logging
 ==================
 
