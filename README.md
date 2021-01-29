@@ -9,7 +9,7 @@ Kubernetes-Storage
 
 Листинг команд, использовавшихся при выполнении данного задания, приведен в файле `commands.sh` в папке *kubernetes-storage*.
 
-В рамках данного заданич выполнено следующее:
+В рамках данного задания выполнено следующее:
  - Развернут кластер в *Minikube*, установлен CSI Host Path драйвер (из https://github.com/kubernetes-csi/csi-driver-host-path).
  - Созданы и развернуты манифесты для **StorageClass**, **PersistentVolumeClaim** и **Pod**. Опробована работа с подключенным хранилищем.
 
