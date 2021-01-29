@@ -28,3 +28,6 @@ kubernetes-vault/consul-helm/
 kubernetes-vault/vault-helm/
 kubernetes-vault/vault-guides/
 
+## CSI associated repo clones
+kubernetes-storage/csi-driver-host-path/
+
