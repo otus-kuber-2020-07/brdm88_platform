@@ -8,4 +8,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: csi-hostpath
+  storageClassName: csi-hostpath-sc
