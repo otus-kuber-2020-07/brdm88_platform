@@ -2,6 +2,89 @@
 brdm88 Platform repository
 
 
+Kubernetes-Debug
+================
+
+Листинг команд, использовавшихся при выполнении данного задания, приведен в файле `commands.sh` в папке *kubernetes-debug*.
+
+##### strace
+
+Развернут локальный кластер Minikube, установлен `kubectl-debug` запущен DaemonSet с агентами.
+Опробована работа `strace` на тестовом поде.
+ 
+Изначально Strace не работаел по причине отсутствия в debug-контейнере capability `SYS_PTRACE`. 
+
+*kubectl-debug web --agentless=false --port-forward=true*
+```
+pod web PodIP 172.17.0.3, agentPodIP 192.168.49.2
+wait for forward port to debug agent ready...
+Forwarding from 127.0.0.1:10027 -> 10027
+...
+container created, open tty...
+```
+
+*bash-5.0# strace -c -p1*
+```
+strace: attach: ptrace(PTRACE_SEIZE, 1): Operation not permitted
+```
+
+Проверка (выполняется внктри `minikube ssh`):
+
+*docker@minikube:~$ docker inspect a3e16fb28c22 | grep CapAdd*
+```
+            "CapAdd": null,
+```
+
+Чтобы заработал `strace`, в манифесте *agent-daemonset.yaml* была изменена версия образа `aylei/debug-agent`, DaemonSet.
+```
+            "CapAdd": [
+                "SYS_PTRACE",
+                "SYS_ADMIN"
+            ],
+```
+
+Вторая попытка:
+
+*kubectl-debug web --agentless=false --port-forward=true*
+```
+pod web PodIP 172.17.0.3, agentPodIP 192.168.49.2
+wait for forward port to debug agent ready...
+...
+container created, open tty...
+```
+
+*bash-5.0# strace -c -p1*
+
+`strace: Process 1 attached`
+
+
+##### iptables-tailer
+
+В GKE развернут кластер из 3-х нод с установленным Calico, в нем развернуто тестовое приложение *netperf-operator*. 
+Запущен тест сети. Затем добавлена NetworkPolicy из репозитория *otus-platform-snippets*. При повторном запуске теста с установленной политикой, тест не проходит.
+Развернут *kube-iptables-tailer*, манифест DaemonSet донастроен.
+В Event-ах netperf-client и netperf-server появились события от *kube-iptables-tailer*.
+
+*kubectl get events -A|grep drop*
+
+```
+default       2m35s       Warning   PacketDrop                pod/netperf-client-65b2ca5a4a22          Packet dropped when sending traffic to server (10.56.0.20)
+default       60s         Warning   PacketDrop                pod/netperf-client-f13bb1e44199          Packet dropped when sending traffic to server (10.56.0.22)
+default       16m         Warning   PacketDrop                pod/netperf-server-65b2ca5a4a22          Packet dropped when receiving traffic from 10.56.0.21
+default       2m35s       Warning   PacketDrop                pod/netperf-server-65b2ca5a4a22          Packet dropped when receiving traffic from client (10.56.0.21)
+default       60s         Warning   PacketDrop                pod/netperf-server-f13bb1e44199          Packet dropped when receiving traffic from client (10.56.0.23)
+```
+
+
+##### Дополнительные задания
+                                                                                     
+Манифест сетевой политики `netperf-calico-policy` доработан так, чтобы обеспечить прохождение трафика между *netperf-client* и *netperf-server*.
+
+
+----
+----
+
+
 Kubernetes-Storage
 ==================
 
