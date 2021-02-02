@@ -31,3 +31,7 @@ kubernetes-vault/vault-guides/
 ## CSI associated repo clones
 kubernetes-storage/csi-driver-host-path/
 
+## Debug associated repo clones
+kubernetes-debug/kube-iptables-tailer/
+kubernetes-debug/netperf-operator/
+
