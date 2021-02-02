@@ -15,12 +15,19 @@ __pycache__/
 .terraform/
 
 ## TLS
-*.crt
+#*.crt
 *.key
 
 ## Charts .gz archives
-#kubernetes/Charts/reddit/charts/*
-#kubernetes/Charts/efk/efk-stack/charts/*
 
-## GitLab CI Work dir
-#kubernetes/Gitlab_ci/*
+## Microservices-demo local repo from Gitops HW
+kubernetes-gitops/microservices-demo/
+
+## Vault associated repo clones
+kubernetes-vault/consul-helm/
+kubernetes-vault/vault-helm/
+kubernetes-vault/vault-guides/
+
+## CSI associated repo clones
+kubernetes-storage/csi-driver-host-path/
+
