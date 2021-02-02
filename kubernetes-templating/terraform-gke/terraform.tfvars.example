@@ -1,0 +1,6 @@
+project_id        = "user-project-id"
+region            = "europe-west1"
+region_zone       = "europe-west1-b"
+gke_num_nodes     = 2
+gke_machine_type  = "g1-small"
+gke_preemtible    = true
