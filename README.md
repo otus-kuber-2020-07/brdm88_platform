@@ -2,6 +2,146 @@
 brdm88 Platform repository
 
 
+
+Kubernetes-Production-Clusters
+==============================
+
+Листинг команд, использовавшихся при выполнении данного задания, приведен в файле `commands.sh` в папке *kubernetes-production-clusters* репозитория.
+
+##### Базовая часть
+
+В рамках данного задания выполнено следующее:
+ - Развернуты 4 виртуальные машины под управлением Ubuntu 18.04 в Google Cloud, проведены подготовительные настройки, установлен Docker.
+
+ - На все машины установлены kubelet, kubeadm, kubectl версии 1.17.
+
+ - Произведена инициализация кластера при помощи *kubeadm*, на Master-ноду установлен сетевой плагин *Calico*.
+
+Успешная инициализация кластера:
+*kubeadm init --pod-network-cidr=192.168.0.0/24*
+```
+Your Kubernetes control-plane has initialized successfully!
+<...>
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.164.0.2:6443 --token qdqyqj.r5487du8y1os5p60 \
+    --discovery-token-ca-cert-hash sha256:8c33edbe135925069b13353a677d59658a24d6a0b882e5e762c7a7cceb6d39b7
+```
+
+ - Worker-ноды подключены к кластеру. Проведена проверка работоспособности кластера путем развертывания тестового workload.
+
+*root@kube-master:~# kubectl get nodes*
+```
+NAME            STATUS   ROLES    AGE     VERSION
+kube-master     Ready    master   77m     v1.17.4
+kube-worker-1   Ready    <none>   7m17s   v1.17.4
+kube-worker-2   Ready    <none>   7m29s   v1.17.4
+kube-worker-3   Ready    <none>   7m11s   v1.17.4
+```
+
+*root@kube-master:~# kubectl get po*
+```
+NAME                               READY   STATUS    RESTARTS   AGE
+nginx-deployment-c8fd555cc-5ctk2   1/1     Running   0          31s
+nginx-deployment-c8fd555cc-882zm   1/1     Running   0          31s
+nginx-deployment-c8fd555cc-nh95w   1/1     Running   0          31s
+nginx-deployment-c8fd555cc-s5bfx   1/1     Running   0          31s
+```
+
+ - Произведено обновление кластера (master-узла) с версии 1.17 до версии 1.18: `apt-get update && apt-get install -y kubeadm=1.18.0-00 kubelet=1.18.0-00 kubectl=1.18.0-00`
+
+*root@kube-master:~# kubectl get nodes*
+```
+NAME            STATUS   ROLES    AGE   VERSION
+kube-master     Ready    master   98m   v1.18.0
+kube-worker-1   Ready    <none>   27m   v1.17.4
+kube-worker-2   Ready    <none>   27m   v1.17.4
+kube-worker-3   Ready    <none>   27m   v1.17.4
+```
+
+ - После обновления master-узла кластера версии *kube-apiserver* и *kubectl server* все еще остаются прежними, хотя версии *kubeadm*, *kubelet* и *kubectl client* уже обновлены.
+```
+root@kube-master:~# kubeadm version
+kubeadm version: &version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCommit:"9e991415386e4cf155a24b1da15b
+ecaa390438d8", GitTreeState:"clean", BuildDate:"2020-03-25T14:56:30Z", GoVersion:"go1.13.8", Compiler:"gc", Platfor
+m:"linux/amd64"}
+
+root@kube-master:~# kubelet --version
+Kubernetes v1.18.0
+
+root@kube-master:~# kubectl version
+Client Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCommit:"9e991415386e4cf155a24b1da15bec
+aa390438d8", GitTreeState:"clean", BuildDate:"2020-03-25T14:58:59Z", GoVersion:"go1.13.8", Compiler:"gc", Platform:
+"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"17", GitVersion:"v1.17.17", GitCommit:"f3abc15296f3a3f54e4ee42e830c6
+1047b13895f", GitTreeState:"clean", BuildDate:"2021-01-13T13:13:00Z", GoVersion:"go1.13.15", Compiler:"gc", Platfor
+m:"linux/amd64"}
+```
+
+```
+root@kube-master:~# kubectl -n kube-system describe po kube-apiserver-kube-master
+Name:                 kube-apiserver-kube-master
+Namespace:            kube-system
+Priority:             2000000000
+Priority Class Name:  system-cluster-critical
+Node:                 kube-master/10.164.0.2
+<...>
+
+    Image:         k8s.gcr.io/kube-apiserver:v1.17.17
+<...>
+```
+ - После обновления компонентов кластера с помощью `kubeadm upgrade apply v1.18.0` обновляется версия *kube-apiserver* и *kubectl server*.
+```
+root@kube-master:~# kubectl version
+Client Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCommit:"9e991415386e4cf155a24b1da15becaa390438d8", GitTreeState:"clean", BuildDate:"2020-03-25T14:58:59Z", GoVersion:"go1.13.8", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCommit:"9e991415386e4cf155a24b1da15becaa390438d8", GitTreeState:"clean", BuildDate:"2020-03-25T14:50:46Z", GoVersion:"go1.13.8", Compiler:"gc", Platform:"linux/amd64"}
+```
+```
+root@kube-master:~# kubectl -n kube-system describe po kube-apiserver-kube-master
+Name:                 kube-apiserver-kube-master
+Namespace:            kube-system
+<...>
+    Image:         k8s.gcr.io/kube-apiserver:v1.18.0
+ <...>
+```
+
+ - Далее, обновлены worker-ноды с применением *drain* и *uncordon*.
+
+Состояние нод кластера после обновления:
+
+*root@kube-master:~# kubectl get nodes*
+```
+NAME            STATUS   ROLES    AGE    VERSION
+kube-master     Ready    master   103m   v1.18.0
+kube-worker-1   Ready    <none>   33m    v1.18.0
+kube-worker-2   Ready    <none>   33m    v1.18.0
+kube-worker-3   Ready    <none>   33m    v1.18.0
+```
+
+
+ - Опробовано развертывание кластера с помощью *Kubespray*. Файл *inventory.ini* добавлен в папку данного ДЗ (`kubernetes-production-clusters`)
+
+
+##### Дополнительное задание
+
+ - При помощи *Kubespray* развернут кластер из 5 узлов: 3 master и 2 worker. Файл инвентори *inventory-multimaster.ini* добавлен в папку данного ДЗ (`kubernetes-production-clusters`).
+
+Состояние развернутого кластера:
+*root@k8s-master-1:~# kubectl get nodes*
+```
+NAME           STATUS   ROLES                  AGE   VERSION
+k8s-master-1   Ready    control-plane,master   19m   v1.20.2
+k8s-master-2   Ready    control-plane,master   19m   v1.20.2
+k8s-master-3   Ready    control-plane,master   18m   v1.20.2
+k8s-node-1     Ready    <none>                 17m   v1.20.2
+k8s-node-2     Ready    <none>                 17m   v1.20.2
+```
+
+
+----
+----
+
+
 Kubernetes-Debug
 ================
 

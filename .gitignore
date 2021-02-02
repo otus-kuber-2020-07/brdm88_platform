@@ -35,3 +35,6 @@ kubernetes-storage/csi-driver-host-path/
 kubernetes-debug/kube-iptables-tailer/
 kubernetes-debug/netperf-operator/
 
+## Prod-deploy associated repo clones
+kubernetes-production-clusters/kubespray/
+
