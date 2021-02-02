@@ -1,0 +1,52 @@
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-issuer"
+      cert-manager.io/acme-challenge-type: http01
+    hosts:
+      - prometheus.35.195.212.204.nip.io
+    tls:
+    - secretName: prometheus-general-tls
+      hosts:
+        - prometheus.35.195.212.204.nip.io
+    paths:
+      - /
+
+grafana:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-issuer"
+      cert-manager.io/acme-challenge-type: http01
+    hosts:
+      - grafana.35.195.212.204.nip.io
+    tls:
+    - secretName: grafana-general-tls
+      hosts:
+        - grafana.35.195.212.204.nip.io
+    paths:
+      - /
+
+alertmanager:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-issuer"
+      cert-manager.io/acme-challenge-type: http01
+    hosts:
+      - alertmanager.35.195.212.204.nip.io
+    tls:
+    - secretName: alertmanager-general-tls
+      hosts:
+        - alertmanager.35.195.212.204.nip.io
+    paths:
+      - /

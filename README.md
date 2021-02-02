@@ -2,9 +2,39 @@
 brdm88 Platform repository
 
 
+Kubernetes-Monitoring
+=====================
+
+##### Базовая часть
+
+В рамках данного задания выполнено следующее:
+
+ - Развернут кластер GKE в Google Cloud с нодами *g1-small*, в кластер перед началом основных работ установлены *Nginx-ingress* и *Cert-Manager* для возможности работы по HTTPS. 
+
+ - В кластер установлен *Prometheus Operator* из чарта с помощью Helm 3. Настроены Ingress-ы для сервисов подсистемы мониторинга.
+
+ - Создан Docker-образ на базе Nginx, отдающий `stub_status`, развернут *Deployment* с тремя репликами (nginx-exporter встроен в поды в качестве sidecar-контейнера). Созданы манифесты для *Service* и *ServiceMonitor*
+
+ - В Grafana развернут Dashboard “Nginx Exporter”.
+
+Манифесты деплоя тестового workload, а также все необходимое для сборки docker-образа, находится в подпапке **nginx-custom**.
+
+Ниже приложены скриншоты страницы target-ов в Prometheus, а также дашборда в Grafana во время запущенного через siege нагрузочного теста сервиса на базе Nginx.
+
+###### Prometheus Targets
+![Prometheus](kubernetes-monitoring/screenshots/03-prom-targets.png)
+
+###### Grafana Dashboard
+![Grafana](kubernetes-monitoring/screenshots/01-grafana-01.png)
+![Grafana](kubernetes-monitoring/screenshots/02-grafana-02.png)
+
+
+----
+----
+
 
 Kubernetes-Operators
-===================
+====================
 
 ##### Базовая часть
 
